@@ -1,0 +1,96 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vape Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .product {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .product img {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vape Shop</h1>
+        <div id="products"></div>
+        <div id="cart" style="position: fixed; bottom: 20px; right: 20px;">
+            <button onclick="showCart()">🛒 Корзина</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();  // Раскрываем приложение на весь экран
+        
+        let cart = [];
+        
+        // Загрузка товаров
+        async function loadProducts() {
+            const response = await fetch('https://ваш-сайт.com/api/products');
+            const products = await response.json();
+            
+            const container = document.getElementById('products');
+            products.forEach(product => {
+                const div = document.createElement('div');
+                div.className = 'product';
+                div.innerHTML = `
+                    <h3>${product.name}</h3>
+                    <img src="${product.image}" alt="${product.name}">
+                    <p>${product.description}</p>
+                    <p>Цена: ${product.price} ₽</p>
+                    <button onclick="addToCart('${product.id}')">В корзину</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function addToCart(productId) {
+            cart.push(productId);
+            tg.showAlert('Товар добавлен в корзину!');
+        }
+        
+        function showCart() {
+            tg.showPopup({
+                title: 'Ваша корзина',
+                message: `Товаров в корзине: ${cart.length}`,
+                buttons: [{
+                    id: 'order',
+                    type: 'default',
+                    text: 'Оформить заказ'
+                }]
+            }, (btnId) => {
+                if (btnId === 'order') {
+                    tg.sendData(JSON.stringify(cart));
+                    tg.close();
+                }
+            });
+        }
+        
+        // Инициализация при загрузке
+        tg.ready();
+        loadProducts();
+    </script>
+</body>
+</html>
